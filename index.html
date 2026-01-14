@@ -1,0 +1,391 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-touch-fullscreen" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<meta name="mobile-web-app-orientation" content="landscape">
+	<meta name="screen-orientation" content="landscape">
+	<meta name="x5-orientation" content="landscape">
+	<meta name="x5-fullscreen" content="true">
+	<meta name="360-fullscreen" content="true">
+	<meta name="full-screen" content="yes">
+	<title>台球游戏 | 移动端优化版</title>
+	<meta name="description" content="台球游戏 - 移动端优化版">
+	<meta name="keywords" content="台球,8球,体育游戏,手机游戏">
+	<style type="text/css">
+		body{margin:0;padding:0;font-size:12px;background:url(res/wood.jpg); touch-action: manipulation;}
+
+/* 基础容器样式 */
+#container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+/* 横屏模式样式 */
+@media (orientation: landscape) {
+    #container {
+        width: 100vw;
+        height: 100vh;
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-size: cover;
+        background-position: center;
+    }
+    
+    /* 游戏画布适配 */
+    #container canvas {
+        max-width: 100vw;
+        max-height: 100vh;
+        width: auto !important;
+        height: auto !important;
+        object-fit: contain;
+        display: block;
+    }
+    
+    .virtual-controls {
+        flex-direction: column;
+        left: 2vw;
+        right: auto;
+        bottom: 2vh;
+        top: 2vh;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5vh;
+        background: rgba(0, 0, 0, 0.2);
+        transform-origin: bottom left;
+    }
+    
+    .virtual-controls .control-button {
+        /* 横屏模式下保持自动缩放 */
+        width: min(8vw, 6vh, 60px);
+        height: min(8vw, 6vh, 60px);
+        font-size: min(4vw, 3vh, 20px);
+        margin: 0.5vh 0;
+    }
+    
+    .virtual-controls .control-button.special {
+        width: min(10vw, 8vh, 70px);
+        height: min(10vw, 8vh, 70px);
+        font-size: min(5vw, 4vh, 24px);
+    }
+}
+
+/* 竖屏模式提示 */
+.portrait-warning {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    color: white;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 9999;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.portrait-warning.visible {
+    display: flex;
+}
+
+.portrait-warning-icon {
+    font-size: 64px;
+    margin-bottom: 30px;
+    animation: rotate 2s ease-in-out infinite;
+}
+
+.portrait-warning-text {
+    font-size: 20px;
+    line-height: 1.6;
+    max-width: 300px;
+    margin-bottom: 30px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes rotate {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+}
+		
+		/* 移动端虚拟控制器 */
+	.virtual-controls {
+		display: none;
+		position: fixed;
+		right: 2vw;
+		bottom: 2vh;
+		flex-direction: column;
+		gap: 1.5vh;
+		z-index: 1001;
+		padding: 1.5vh 1.5vw;
+		background: rgba(0, 0, 0, 0.1);
+		border-radius: 15px;
+		backdrop-filter: blur(10px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		/* 自动缩放控制 */
+		transform: scale(1);
+		transform-origin: bottom right;
+	}
+
+	.virtual-controls .control-button {
+		/* 使用视口单位实现自动缩放 */
+		width: min(8vw, 8vh, 60px);
+		height: min(8vw, 8vh, 60px);
+		background: rgba(255, 255, 255, 0.3);
+		border: 2px solid rgba(255, 255, 255, 0.6);
+		border-radius: 50%;
+		color: white;
+		font-size: min(4vw, 4vh, 20px);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		backdrop-filter: blur(10px);
+		transition: all 0.2s ease;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+		position: relative;
+		overflow: hidden;
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+	}
+
+		.virtual-controls .control-button::before {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: 0;
+			height: 0;
+			background: rgba(255, 255, 255, 0.3);
+			border-radius: 50%;
+			transform: translate(-50%, -50%);
+			transition: all 0.3s ease;
+		}
+
+		.virtual-controls .control-button:active::before {
+			width: 100%;
+			height: 100%;
+		}
+
+		.virtual-controls .control-button.active {
+			background: rgba(255, 255, 255, 0.4);
+			transform: scale(0.95);
+		}
+
+		.virtual-controls .control-button.special {
+			width: min(10vw, 10vh, 80px);
+			height: min(10vw, 10vh, 80px);
+			background: rgba(255, 215, 0, 0.3);
+			border-color: rgba(255, 215, 0, 0.7);
+			font-size: min(5vw, 5vh, 24px);
+		}
+
+		/* 力度显示 */
+		.power-indicator {
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			width: min(5vw, 5vh, 20px);
+			height: min(5vw, 5vh, 20px);
+			background: rgba(255, 69, 0, 0.8);
+			border-radius: 50%;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			font-size: min(2.5vw, 2.5vh, 10px);
+			color: white;
+			font-weight: bold;
+		}
+
+		.power-indicator.visible {
+			display: flex;
+			animation: pulse 0.5s ease-in-out infinite alternate;
+		}
+
+		@keyframes pulse {
+			from { transform: scale(1); }
+			to { transform: scale(1.2); }
+		}
+
+		/* 游戏状态显示 - 自动缩放适配 */
+		.game-status {
+			position: fixed;
+			top: 2vh;
+			left: 2vw;
+			z-index: 1000;
+			color: white;
+			font-size: min(3.5vw, 2vh, 16px);
+			font-weight: bold;
+			text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+			background: rgba(0, 0, 0, 0.4);
+			padding: 1.5vh 1.5vw;
+			border-radius: 10px;
+			backdrop-filter: blur(10px);
+			line-height: 1.5;
+			display: none;
+			min-width: min(35vw, 140px);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+			transform: scale(1);
+			transform-origin: top left;
+		}
+
+		.game-status div {
+			margin: 0.5vh 0;
+			white-space: nowrap;
+		}
+
+		.game-status span {
+			color: #4CAF50;
+			font-weight: bold;
+		}
+
+		/* 清理之前的固定尺寸媒体查询，使用新的智能缩放系统 */
+	</style>
+</head>
+<body>
+	<div id = "container"></div>
+<div id = "fps" style = "position:absolute"></div>
+
+<!-- 竖屏模式提示 -->
+<div class="portrait-warning" id="portraitWarning">
+    <div class="portrait-warning-icon">📱</div>
+    <div class="portrait-warning-text">请将设备旋转至横屏模式<br>以获得最佳游戏体验</div>
+</div>
+	
+	<!-- 移动端虚拟控制器 -->
+	<div class="virtual-controls" id="virtualControls">
+		<button class="control-button" id="powerBtn" title="力度">
+			⚡
+			<div class="power-indicator" id="powerIndicator">0</div>
+		</button>
+		<button class="control-button special" id="shootBtn" title="击球">🎱</button>
+		<button class="control-button" id="resetBtn" title="重新开始">🔄</button>
+	</div>
+
+	<!-- 游戏状态显示 -->
+	<div class="game-status" id="gameStatus">
+		<div>🎱 台球游戏</div>
+		<div>得分: <span id="scoreDisplay">0</span></div>
+		<div>球数: <span id="ballsDisplay">7</span></div>
+		<div>状态: <span id="gameState">准备开始</span></div>
+	</div>
+
+	<script src = "src/quark.base-1.0.0.alpha.min.js"></script>
+	<script src = "Taiqiu.js"></script>
+	<script src = "mobile-adaptation.js"></script>
+	<!-- 简化的全屏功能实现 -->
+	<script>
+		window.FullscreenUtils = {
+			initFullscreen: function(containerId, gameTitle) {
+				console.log('全屏功能初始化 - ' + gameTitle);
+			}
+		};
+	</script>
+	
+	<!-- 移动端优化脚本 -->
+	<script>
+		// 简化的移动设备检测
+		function isMobileDevice() {
+			return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(navigator.userAgent) || 
+				   (window.innerWidth < 768 && 'ontouchstart' in window);
+		}
+		
+		// 初始化虚拟控制器
+		function initVirtualControls() {
+			const shootBtn = document.getElementById('shootBtn');
+			const resetBtn = document.getElementById('resetBtn');
+			
+			// 击球按钮
+			shootBtn.addEventListener('touchstart', function(e) {
+				e.preventDefault();
+				if (window.BallGame && BallGame.canShot && !BallGame.paused) {
+					// 使用智能击球功能
+					if (BallGame.smartShoot) {
+						BallGame.smartShoot();
+					}
+				}
+			});
+			shootBtn.addEventListener('click', function(e) {
+				e.preventDefault();
+				if (window.BallGame && BallGame.canShot && !BallGame.paused) {
+					if (BallGame.smartShoot) {
+						BallGame.smartShoot();
+					}
+				}
+			});
+			
+			// 重新开始按钮
+			resetBtn.addEventListener('touchstart', function(e) {
+				e.preventDefault();
+				if (window.BallGame && BallGame.reset) {
+					BallGame.reset();
+				}
+			});
+			resetBtn.addEventListener('click', function(e) {
+				e.preventDefault();
+				if (window.BallGame && BallGame.reset) {
+					BallGame.reset();
+				}
+			});
+		}
+		
+		// 游戏初始化函数
+		function initGameUI() {
+			try {
+				// 等待BallGame对象完全初始化
+				const checkBallGame = setInterval(() => {
+					if (window.BallGame && BallGame.stage) {
+						clearInterval(checkBallGame);
+						console.log('BallGame对象已初始化，开始初始化UI');
+						
+						// 初始化虚拟控制器
+						initVirtualControls();
+						
+						// 如果是移动设备，显示虚拟控制器
+						if (isMobileDevice()) {
+							document.getElementById('virtualControls').style.display = 'flex';
+							document.body.style.touchAction = 'manipulation';
+							console.log('移动端适配已启用');
+						}
+						
+						// 显示游戏状态
+						document.getElementById('gameStatus').style.display = 'block';
+					}
+				}, 100);
+			} catch (error) {
+				console.error('游戏UI初始化失败:', error);
+			}
+		}
+		
+		// 页面加载完成后开始UI初始化
+		// 注意：Taiqiu.js已经有自己的onload事件处理函数，所以这里使用DOMContentLoaded确保不会冲突
+		document.addEventListener('DOMContentLoaded', function() {
+			console.log('DOM内容加载完成，准备初始化游戏UI');
+			initGameUI();
+		});
+	</script>
+</body>
+</html>
