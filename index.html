@@ -1,257 +1,385 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>专业台球大师 - Pro Billiards Master</title>
-    <!-- 使用 Tailwind CSS 进行快速样式布局 -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入字体和图标 -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body {
+        /* --- 样式变量定义 --- */
+        :root {
+            --bg-zinc-50: #fafafa;
+            --bg-zinc-100: #f4f4f5;
+            --bg-zinc-200: #e4e4e7;
+            --bg-zinc-300: #d4d4d8;
+            --bg-zinc-400: #a1a1aa;
+            --bg-zinc-500: #71717a;
+            --bg-zinc-600: #52525b;
+            --bg-zinc-700: #3f3f46;
+            --bg-zinc-800: #27272a;
+            --bg-zinc-900: #18181b;
+            --bg-zinc-950: #09090b;
+            --bg-green-700: #15803d;
+            --bg-green-500: #22c55e;
+            --bg-amber-500: #f59e0b;
+        }
+
+        /* --- 基础布局重置 --- */
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        html, body {
+            height: 100%;
             overflow: hidden;
-            font-family: 'Inter', "Microsoft YaHei", sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent; /* 禁用移动端点击高亮 */
+            user-select: none; /* 禁用文字选中，防止游戏干扰 */
+            touch-action: none; /* 全局禁用触摸默认行为 */
         }
-        /* 木纹纹理装饰 */
+
+        /* --- 通用布局类 --- */
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .h-screen { height: 100vh; }
+        .w-full { width: 100%; }
+        .h-full { height: 100%; }
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        .rounded-full { border-radius: 9999px; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .transition-all { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .uppercase { text-transform: uppercase; }
+        .font-bold { font-weight: 700; }
+        .font-black { font-weight: 900; }
+
+        /* --- 游戏主题外观 --- */
+        .bg-app { background-color: var(--bg-zinc-50); color: var(--bg-zinc-900); }
+        .dark .bg-app { background-color: var(--bg-zinc-950); color: white; }
+
+        header {
+            background: white;
+            border-bottom: 1px solid var(--bg-zinc-200);
+            padding: 8px 16px; /* 移动端缩小内边距 */
+            z-index: 50;
+        }
+        .dark header { background: var(--bg-zinc-900); border-bottom-color: var(--bg-zinc-800); }
+
+        /* 木纹理效果（纯CSS实现） */
         .wood-pattern {
-            background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');
+            background-color: #3e2723;
+            background-image:
+                repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(0,0,0,0.05) 50px, rgba(0,0,0,0.05) 100px),
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 100px 100px, 100% 20px;
         }
-        canvas {
-            touch-action: none;
+
+        canvas { 
+            touch-action: none; 
+            cursor: crosshair; 
+            width: 100%; /* 让Canvas自适应容器宽度 */
+            height: 100%; /* 让Canvas自适应容器高度 */
         }
-        /* 竖屏适配专用样式 */
+
+        /* --- 响应式适配：竖屏模式 --- */
         @media (orientation: portrait) {
-            #mainContent {
-                flex-direction: column;
-                padding-top: 1rem;
-                padding-bottom: 5rem;
+            #mainContent { 
+                flex-direction: column; 
+                padding-bottom: 100px; /* 增加底部内边距，避免按钮被遮挡 */
+                padding: 16px 8px; /* 移动端缩小左右内边距 */
             }
             #powerBarContainer {
                 position: relative;
-                left: auto;
-                top: auto;
-                transform: none;
-                flex-direction: row;
-                width: 90%;
-                margin: 1rem 0;
-                height: auto;
-                padding: 0.5rem 1rem;
+                top: auto; transform: none; left: auto;
+                flex-direction: row; 
+                width: 85%; /* 缩小宽度，适配移动端 */
+                margin: 15px 0; 
+                height: 40px; /* 降低高度 */
+                padding: 10px; /* 缩小内边距 */
             }
-            #powerBarRail {
-                width: 100% !important;
-                height: 1.25rem !important;
+            #powerBarRail { width: 100% !important; height: 12px !important; }
+            #powerFill { height: 100% !important; width: 0%; left: 0; bottom: 0; }
+            #actionButtonsContainer { 
+                position: fixed; 
+                bottom: 20px; /* 上移按钮，避免超出屏幕 */
+                width: 100%; 
+                flex-direction: row; 
+                padding: 0 15px; 
+                justify-content: center; /* 按钮居中 */
+                gap: 10px !important; /* 缩小按钮间距 */
             }
-            #powerFill {
-                height: 100% !important;
-                width: 0%;
-                bottom: 0;
-                left: 0;
+            #resetBtn {
+                padding: 10px 20px !important; /* 缩小按钮尺寸 */
+                font-size: 11px !important;
+            }
+            #statusBadge {
+                padding: 12px 20px !important; /* 缩小状态徽章 */
+                font-size: 11px !important;
+            }
+            #powerLabel { 
+                writing-mode: horizontal-tb !important; 
+                display: flex; 
+                gap: 4px; 
+                margin-left: 8px; /* 增加间距 */
+            }
+        }
+
+        /* --- 横屏移动端适配 --- */
+        @media (orientation: landscape) and (max-width: 900px) {
+            #powerBarContainer {
+                left: 15px !important; /* 左移力度条 */
+                padding: 10px !important; /* 缩小内边距 */
             }
             #actionButtonsContainer {
-                position: fixed;
-                bottom: 4rem;
-                right: 0;
-                left: 0;
-                width: 100%;
-                flex-direction: row;
-                justify-content: center;
-                gap: 0.5rem;
-                padding: 0 1rem;
+                right: 15px !important; /* 右移操作按钮 */
+                bottom: 20px !important; /* 上移操作按钮 */
+                gap: 10px !important;
             }
-            #powerLabel {
-                writing-mode: horizontal-tb !important;
-                display: flex;
-                gap: 2px;
+            header {
+                padding: 4px 12px;
             }
+            footer {
+                padding: 8px 15px !important;
+            }
+        }
+
+        /* --- 具体的UI组件样式 --- */
+        .score-box {
+            background: var(--bg-zinc-100);
+            border: 1px solid var(--bg-zinc-200);
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .dark .score-box { background: var(--bg-zinc-800); border-color: var(--bg-zinc-700); }
+
+        .player-card {
+            padding: 4px 12px; /* 移动端缩小内边距 */
+            text-align: center;
+            border-radius: 12px;
+        }
+        .player-card.active { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .dark .player-card.active { background: var(--bg-zinc-900); }
+
+        .btn-toggle {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--bg-zinc-200);
+            background: white;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .dark .btn-toggle { background: var(--bg-zinc-900); border-color: var(--bg-zinc-700); color: white; }
+
+        .icon { width: 24px; height: 24px; fill: currentColor; }
+        .icon-sm { width: 16px; height: 16px; }
+
+        /* 页脚适配 */
+        footer {
+            padding: 12px 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            flex-wrap: wrap; /* 允许页脚内容换行 */
+        }
+        footer .flex {
+            gap: 15px !important; /* 移动端缩小间距 */
+        }
+        footer div {
+            font-size: 11px !important; /* 移动端缩小字体 */
+        }
+        #turnText {
+            margin-top: 5px; /* 增加上边距，避免换行后重叠 */
         }
     </style>
 </head>
-<body class="bg-zinc-100 dark:bg-zinc-950 transition-colors duration-300">
-    <div id="app" class="flex flex-col h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
-        
-        <!-- 顶部导航栏 -->
-        <header class="px-4 md:px-8 py-3 md:py-5 flex items-center justify-between bg-white dark:bg-zinc-900 shadow-sm border-b border-zinc-200 dark:border-zinc-800 z-50">
-            <div class="flex items-center gap-2 md:gap-4">
-                <div class="w-9 h-9 md:w-11 md:h-11 bg-green-700 rounded-full flex items-center justify-center text-white shadow-lg flex-shrink-0">
-                    <span class="material-icons text-base md:text-xl">sports_handball</span>
+<body class="bg-app transition-all">
+    <div id="app" class="flex flex-col h-screen">
+
+        <!-- --- 头部：标题与比分系统 --- -->
+        <header class="flex items-center justify-between shadow-sm">
+            <div class="flex items-center" style="gap: 8px;">
+                <div class="rounded-full flex items-center justify-center shadow-lg" style="width: 35px; height: 35px; background: var(--bg-green-700); color: white;">
+                    <svg class="icon-sm" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><circle cx="12" cy="12" r="5"/></svg>
                 </div>
-                <h1 class="text-base md:text-2xl font-extrabold tracking-tight text-zinc-800 dark:text-white uppercase whitespace-nowrap">
-                    专业台球大师
-                </h1>
+                <h1 style="font-size: 1rem; font-weight: 800; letter-spacing: -0.025em; text-transform: uppercase;">专业台球大师</h1>
             </div>
 
-            <!-- 优化后的比分板 UI -->
-            <div class="flex items-center gap-3 md:gap-6">
-                <div class="flex items-center bg-zinc-100 dark:bg-zinc-800 rounded-2xl p-1 md:p-1.5 border border-zinc-200 dark:border-zinc-700 shadow-inner">
-                    <!-- 玩家 1 区域 -->
-                    <div id="p1Box" class="flex flex-col items-center px-3 md:px-5 py-1 rounded-xl transition-all duration-300 bg-white dark:bg-zinc-900 shadow-sm border border-zinc-200 dark:border-zinc-700">
-                        <span class="text-[8px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">玩家 1</span>
-                        <span id="score1" class="text-sm md:text-2xl font-black text-zinc-800 dark:text-white leading-none mt-0.5">00</span>
+            <!-- 比分板 -->
+            <div class="flex items-center" style="gap: 12px;">
+                <div class="score-box rounded-2xl">
+                    <div id="p1Box" class="player-card active transition-all">
+                        <p style="font-size: 9px; font-weight: 700; color: var(--bg-zinc-400);">玩家 1</p>
+                        <span id="score1" class="font-black" style="font-size: 1rem;">00</span>
                     </div>
-                    
-                    <!-- 分隔线 -->
-                    <div class="px-2 md:px-4 flex flex-col items-center justify-center">
-                        <div class="w-1.5 h-1.5 bg-zinc-300 dark:bg-zinc-600 rounded-full"></div>
-                    </div>
-
-                    <!-- 玩家 2 区域 -->
-                    <div id="p2Box" class="flex flex-col items-center px-3 md:px-5 py-1 rounded-xl transition-all duration-300">
-                        <span class="text-[8px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">玩家 2</span>
-                        <span id="score2" class="text-sm md:text-2xl font-black text-zinc-800 dark:text-white leading-none mt-0.5 opacity-60">00</span>
+                    <div style="width: 1px; height: 28px; background: var(--bg-zinc-300); margin: 0 6px;"></div>
+                    <div id="p2Box" class="player-card transition-all">
+                        <p style="font-size: 9px; font-weight: 700; color: var(--bg-zinc-400);">玩家 2</p>
+                        <span id="score2" class="font-black" style="font-size: 1rem; opacity: 0.6;">00</span>
                     </div>
                 </div>
-                
-                <!-- 主题切换按钮 -->
-                <button id="themeToggle" class="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-900">
-                    <span class="material-icons text-lg md:text-xl">dark_mode</span>
-                </button>
             </div>
         </header>
 
-        <!-- 游戏主体区域 -->
-        <main id="mainContent" class="flex-grow relative flex items-center justify-center overflow-hidden p-2 md:p-12">
-            <div class="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none wood-pattern"></div>
+        <!-- --- 主游戏区域 --- -->
+        <main id="mainContent" class="relative flex items-center justify-center h-full" style="padding: 16px;">
+            <!-- 背景修饰 -->
+            <div class="absolute w-full h-full wood-pattern" style="opacity: 0.15; z-index: -1;"></div>
 
-            <!-- 台球桌外观装饰层 -->
-            <div id="tableWrapper" class="relative w-full max-w-5xl aspect-[2/1] bg-amber-900/10 rounded-[1.5rem] md:rounded-[3.5rem] p-2 md:p-5 flex items-center justify-center shadow-inner">
-                <div class="relative w-full h-full bg-[#3d2b1f] rounded-[1rem] md:rounded-[3rem] p-2 md:p-10 shadow-2xl border-t-4 md:border-t-[12px] border-white/10 overflow-hidden flex items-center justify-center">
-                    
-                    <!-- 台面装饰点 -->
-                    <div class="absolute top-2 md:top-6 inset-x-0 flex justify-around px-12 md:px-24 opacity-30 pointer-events-none">
-                        <div class="w-1 h-1 md:w-2 md:h-2 bg-white rounded-full"></div>
-                        <div class="w-1 h-1 md:w-2 md:h-2 bg-white rounded-full"></div>
-                        <div class="w-1 h-1 md:w-2 md:h-2 bg-white rounded-full"></div>
-                        <div class="w-1 h-1 md:w-2 md:h-2 bg-white rounded-full"></div>
-                    </div>
-                    
-                    <!-- 绿呢台面容器 -->
-                    <div id="tableContainer" class="relative w-full h-full bg-[#4e6d32] rounded-lg md:rounded-[2.5rem] overflow-hidden shadow-inner border-2 md:border-8 border-black/20">
-                        <div class="absolute inset-0 bg-radial-gradient from-white/5 to-transparent pointer-events-none"></div>
-                        <canvas id="poolCanvas" class="w-full h-full cursor-crosshair"></canvas>
+            <!-- 球桌容器：多层嵌套模拟阴影与厚度 -->
+            <div id="tableWrapper" class="relative w-full shadow-lg rounded-2xl" style="max-width: 900px; aspect-ratio: 2/1; background: rgba(120, 60, 20, 0.2); padding: 12px;">
+                <div class="relative w-full h-full rounded-2xl shadow-2xl flex items-center justify-center" style="background: #3d2b1f; border-top: 6px solid rgba(255,255,255,0.1); padding: 12px;">
+                    <!-- 台面边框与绿呢 -->
+                    <div id="tableContainer" class="relative w-full h-full rounded-xl overflow-hidden shadow-inner" style="background: #4e6d32; border: 3px solid rgba(0,0,0,0.3);">
+                        <canvas id="poolCanvas"></canvas>
                     </div>
                 </div>
             </div>
 
-            <!-- 力度条 -->
-            <div id="powerBarContainer" class="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 md:gap-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md p-2 md:p-4 rounded-xl md:rounded-3xl shadow-xl border border-white/20 dark:border-zinc-800 z-10">
-                <span class="material-icons text-amber-500 text-sm md:text-base">bolt</span>
-                <div id="powerBarRail" class="relative h-24 md:h-64 w-3 md:w-6 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden border border-zinc-300 dark:border-zinc-700">
-                    <div id="powerFill" class="absolute bottom-0 w-full bg-gradient-to-t from-red-600 via-yellow-500 to-green-500 transition-all duration-75" style="height: 0%"></div>
+            <!-- 力度感应条 -->
+            <div id="powerBarContainer" class="absolute flex flex-col items-center shadow-lg rounded-2xl transition-all" style="left: 40px; background: rgba(255,255,255,0.95); padding: 12px; gap: 8px; border: 1px solid rgba(0,0,0,0.05);">
+                <svg class="icon" style="color: var(--bg-amber-500);" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+                <div id="powerBarRail" class="relative rounded-full overflow-hidden" style="height: 180px; width: 18px; background: #eee; border: 1px solid #ddd;">
+                    <div id="powerFill" class="absolute w-full transition-all" style="bottom: 0; height: 0%; background: linear-gradient(to top, #dc2626, #f59e0b, #22c55e);"></div>
                 </div>
-                <p id="powerLabel" class="text-[8px] md:text-[10px] font-black text-zinc-400 uppercase tracking-widest [writing-mode:vertical-rl] leading-none">度力</p>
+                <p id="powerLabel" class="font-black" style="font-size: 9px; color: #aaa; writing-mode: vertical-rl;">度力</p>
             </div>
 
-            <!-- 操作按钮 -->
-            <div id="actionButtonsContainer" class="absolute right-4 md:right-12 bottom-8 md:bottom-12 flex flex-col gap-2 md:gap-4 z-10">
-                <button id="resetBtn" class="flex items-center justify-center gap-2 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 md:px-7 md:py-4 rounded-xl md:rounded-3xl shadow-lg border border-white/20 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider text-[10px] md:text-sm transition-all hover:scale-105 active:scale-95">
-                    <span class="material-icons text-sm">refresh</span>
+            <!-- 浮动操作按钮与状态提示 -->
+            <div id="actionButtonsContainer" class="absolute flex flex-col transition-all" style="right: 40px; bottom: 60px; gap: 12px;">
+                <button id="resetBtn" class="flex items-center shadow-lg font-bold transition-all" style="background: rgba(255,255,255,0.95); border: none; padding: 10px 20px; border-radius: 16px; cursor: pointer; gap: 6px; font-size: 11px;">
+                    <svg class="icon-sm" viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
                     重新开始
                 </button>
-                
-                <div id="statusBadge" class="px-5 py-3 md:px-10 md:py-6 rounded-xl md:rounded-[2rem] shadow-2xl font-bold text-[10px] md:text-xl uppercase tracking-widest transition-all bg-green-700 text-white flex items-center gap-2 md:gap-3">
-                    <span id="statusIcon" class="material-icons text-sm md:text-2xl">play_arrow</span>
+
+                <div id="statusBadge" class="flex items-center font-bold shadow-2xl transition-all" style="background: var(--bg-green-700); color: white; padding: 12px 24px; border-radius: 20px; gap: 8px;">
+                    <svg id="statusIcon" class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     <span id="statusText">等待击球</span>
                 </div>
             </div>
         </main>
 
-        <!-- 页脚 -->
-        <footer class="px-4 md:px-10 py-3 md:py-5 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between text-[9px] md:text-[12px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest gap-2">
-            <div class="flex items-center gap-4 md:gap-8">
-                <div class="flex items-center gap-1.5 md:gap-3">
-                    <span class="material-icons text-xs md:text-lg opacity-40">touch_app</span>
-                    长按: 蓄力并瞄准
+        <!-- --- 页脚：操作指南与当前回合 --- -->
+        <footer class="flex items-center justify-between shadow-sm" style="padding: 12px 20px; background: white; border-top: 1px solid #eee;">
+            <div class="flex" style="gap: 20px;">
+                <div class="flex items-center" style="gap: 6px; font-size: 11px; color: #666; font-weight: 600;">
+                    <svg class="icon-sm" style="opacity: 0.5;" viewBox="0 0 24 24"><path d="M9 11.24V7.5a2.5 2.5 0 015 0v3.74c1.21-.81 2-2.18 2-3.74C16 5.01 13.99 3 11.5 3S7 5.01 7 7.5c0 1.56.79 2.93 2 3.74zM18.84 15.87l-4.54-2.26c-.17-.07-.35-.11-.54-.11H13v-6c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v10.74l-3.43-.72c-.08-.01-.15-.02-.24-.02-.31 0-.59.13-.79.33l-.79.8 4.94 4.94c.27.27.65.44 1.06.44h6.79c.75 0 1.33-.55 1.44-1.28l.75-5.27c.01-.07.02-.14.02-.2 0-.41-.17-.77-.46-1.03z"/></svg>
+                    长按: 蓄力瞄准
                 </div>
-                <div class="flex items-center gap-1.5 md:gap-3">
-                    <span class="material-icons text-xs md:text-lg opacity-40">bolt</span>
+                <div class="flex items-center" style="gap: 6px; font-size: 11px; color: #666; font-weight: 600;">
+                    <svg class="icon-sm" style="opacity: 0.5;" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
                     松开: 发射击球
                 </div>
             </div>
 
-            <div class="flex items-center gap-4">
-                <div id="turnText" class="flex items-center gap-2 md:gap-3 text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-900/20 px-4 py-1.5 rounded-full border border-green-200/50">
-                    <span class="w-1.5 h-1.5 md:w-2.5 md:h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-                    回合: 玩家 1
-                </div>
+            <!-- 当前回合显示 -->
+            <div id="turnText" class="flex items-center font-bold" style="background: rgba(34, 197, 94, 0.1); padding: 6px 12px; border-radius: 99px; color: var(--bg-green-700); font-size: 11px; gap: 6px;">
+                <div style="width: 7px; height: 7px; background: var(--bg-green-500); border-radius: 50%; box-shadow: 0 0 6px rgba(34,197,94,0.5);"></div>
+                回合: 玩家 1
             </div>
         </footer>
     </div>
 
     <script>
-        /**
-         * 游戏常量定义
-         */
-        const TABLE_WIDTH = 800;
-        const TABLE_HEIGHT = 400;
-        const BALL_RADIUS = 10;
-        const FRICTION = 0.985;
-        const POCKET_RADIUS = 22;
-        const MAX_POWER = 35;
-        
+        /* --- 游戏引擎常量 --- */
+        const TABLE_WIDTH = 800;   // 逻辑宽度
+        const TABLE_HEIGHT = 400;  // 逻辑高度
+        const BALL_RADIUS = 10;    // 球半径
+        const FRICTION = 0.985;    // 滚动摩擦力（每帧速度衰减比例）
+        const POCKET_RADIUS = 22;  // 袋口半径
+        const MAX_POWER = 35;      // 最大发射初速度
+
+        // 球号对应的视觉颜色
         const BALL_COLORS = {
             1: '#fbbf24', 2: '#2563eb', 3: '#dc2626', 4: '#7c3aed', 5: '#ea580c',
             6: '#059669', 7: '#991b1b', 8: '#000000', 9: '#fbbf24', 10: '#2563eb',
             11: '#dc2626', 12: '#7c3aed', 13: '#ea580c', 14: '#059669', 15: '#991b1b'
         };
-        
+
+        // 桌面六个袋口的坐标
         const POCKET_POSITIONS = [
             { x: 0, y: 0 }, { x: TABLE_WIDTH / 2, y: 0 }, { x: TABLE_WIDTH, y: 0 },
             { x: 0, y: TABLE_HEIGHT }, { x: TABLE_WIDTH / 2, y: TABLE_HEIGHT }, { x: TABLE_WIDTH, y: TABLE_HEIGHT }
         ];
 
-        let balls = [];
-        let isCharging = false;
-        let currentPower = 0;
-        let chargeDirection = 1;
-        let aimVector = { x: 1, y: 0 };
-        let isMoving = false;
-        let scores = { p1: 0, p2: 0 };
-        let currentTurn = 1;
+        /* --- 游戏运行时状态 --- */
+        let balls = [];             // 存储所有球对象的数组
+        let isCharging = false;     // 是否正在蓄力中
+        let currentPower = 0;       // 当前蓄力值 (0-100)
+        let chargeDirection = 1;    // 蓄力条动画方向 (递增或递减)
+        let aimVector = { x: 1, y: 0 }; // 瞄准归一化向量
+        let isMoving = false;       // 当前桌面上是否有球正在移动
+        let scores = { player1: 0, player2: 0 }; // 记分板
+        let currentTurn = 1;        // 当前回合玩家编号
+        let canvasScale = 1;        // Canvas实际渲染缩放比例（适配高清屏）
 
         const canvas = document.getElementById('poolCanvas');
-        const ctx = canvas.getContext('2d');
+        const canvasContext = canvas.getContext('2d');
         const powerFill = document.getElementById('powerFill');
         const score1El = document.getElementById('score1');
         const score2El = document.getElementById('score2');
         const p1Box = document.getElementById('p1Box');
         const p2Box = document.getElementById('p2Box');
         const statusText = document.getElementById('statusText');
-        const statusIcon = document.getElementById('statusIcon');
         const statusBadge = document.getElementById('statusBadge');
         const turnText = document.getElementById('turnText');
-        const themeToggle = document.getElementById('themeToggle');
         const resetBtn = document.getElementById('resetBtn');
 
+        /**
+         * 初始化画布尺寸（适配高清屏）
+         */
         function initCanvas() {
-            canvas.width = TABLE_WIDTH;
-            canvas.height = TABLE_HEIGHT;
+            // 获取设备像素比，适配Retina屏
+            const devicePixelRatio = window.devicePixelRatio || 1;
+            const backingStoreRatio = canvasContext.webkitBackingStorePixelRatio ||
+                                      canvasContext.mozBackingStorePixelRatio ||
+                                      canvasContext.msBackingStorePixelRatio ||
+                                      canvasContext.oBackingStorePixelRatio ||
+                                      canvasContext.backingStorePixelRatio || 1;
+            canvasScale = devicePixelRatio / backingStoreRatio;
+
+            // 设置Canvas实际尺寸（逻辑尺寸 * 缩放比）
+            canvas.width = TABLE_WIDTH * canvasScale;
+            canvas.height = TABLE_HEIGHT * canvasScale;
+            // 设置Canvas显示尺寸（占满容器）
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            
+            // 缩放Canvas上下文，保证绘制的图形比例正确
+            canvasContext.scale(canvasScale, canvasScale);
         }
 
+        /**
+         * 初始化球组位置（母球 + 目标球三角形排列）
+         */
         function initBalls() {
             balls = [];
+            // 母球：位于左侧发球点
             balls.push({
-                id: 0, pos: { x: TABLE_WIDTH / 4, y: TABLE_HEIGHT / 2 }, vel: { x: 0, y: 0 },
+                id: 0, position: { x: TABLE_WIDTH / 4, y: TABLE_HEIGHT / 2 }, velocity: { x: 0, y: 0 },
                 radius: BALL_RADIUS, color: '#ffffff', type: 'CUE', number: 0, inPocket: false
             });
 
+            // 目标球：右侧三角形排列
             const startX = (TABLE_WIDTH * 3) / 4;
             const startY = TABLE_HEIGHT / 2;
             let ballCount = 1;
-            for (let col = 0; col < 5; col++) {
-                for (let row = 0; row <= col; row++) {
-                    const x = startX + col * (BALL_RADIUS * 2 * 0.866);
-                    const y = startY - (col * BALL_RADIUS) + (row * BALL_RADIUS * 2);
+            for (let column = 0; column < 5; column++) {
+                for (let row = 0; row <= column; row++) {
+                    // 0.866 是 sin(60deg)，用于计算等边三角形紧密堆积的高度
+                    const x = startX + column * (BALL_RADIUS * 2 * 0.866);
+                    const y = startY - (column * BALL_RADIUS) + (row * BALL_RADIUS * 2);
                     let type = ballCount <= 7 ? 'SOLID' : 'STRIPE';
                     if (ballCount === 8) type = 'EIGHT';
                     balls.push({
-                        id: ballCount, pos: { x, y }, vel: { x: 0, y: 0 },
+                        id: ballCount, position: { x, y }, velocity: { x: 0, y: 0 },
                         radius: BALL_RADIUS, color: BALL_COLORS[ballCount] || '#000',
                         type, number: ballCount, inPocket: false
                     });
@@ -260,37 +388,54 @@
             }
         }
 
-        function resolveCollision(b1, b2) {
-            if (b1.inPocket || b2.inPocket) return;
-            const dx = b2.pos.x - b1.pos.x;
-            const dy = b2.pos.y - b1.pos.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            
-            if (dist < b1.radius + b2.radius) {
-                const nx = dx / dist;
-                const ny = dy / dist;
-                const overlap = (b1.radius + b2.radius - dist) / 2;
-                b1.pos.x -= nx * overlap;
-                b1.pos.y -= ny * overlap;
-                b2.pos.x += nx * overlap;
-                b2.pos.y += ny * overlap;
-                const v1n = b1.vel.x * nx + b1.vel.y * ny;
-                const v2n = b2.vel.x * nx + b2.vel.y * ny;
-                b1.vel.x += (v2n - v1n) * nx;
-                b1.vel.y += (v2n - v1n) * ny;
-                b2.vel.x += (v1n - v2n) * nx;
-                b2.vel.y += (v1n - v2n) * ny;
+        /**
+         * 物理碰撞解决算法 (完全弹性碰撞)
+         * 基于动量守恒和能量守恒简化后的法线投影法
+         */
+        function resolveCollision(ball1, ball2) {
+            if (ball1.inPocket || ball2.inPocket) return;
+            const deltaX = ball2.position.x - ball1.position.x;
+            const deltaY = ball2.position.y - ball1.position.y;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            // 距离小于直径之和则发生碰撞
+            if (distance < ball1.radius + ball2.radius) {
+                // 1. 计算法线向量
+                const normalX = deltaX / distance;
+                const normalY = deltaY / distance;
+
+                // 2. 修正位置，防止球体嵌入
+                const overlapDistance = (ball1.radius + ball2.radius - distance) / 2;
+                ball1.position.x -= normalX * overlapDistance;
+                ball1.position.y -= normalY * overlapDistance;
+                ball2.position.x += normalX * overlapDistance;
+                ball2.position.y += normalY * overlapDistance;
+
+                // 3. 计算相对速度在法向上的投影
+                const velocity1Normal = ball1.velocity.x * normalX + ball1.velocity.y * normalY;
+                const velocity2Normal = ball2.velocity.x * normalX + ball2.velocity.y * normalY;
+
+                // 4. 交换法向分量（由于质量相等，碰撞表现为速度法向分量完全交换）
+                ball1.velocity.x += (velocity2Normal - velocity1Normal) * normalX;
+                ball1.velocity.y += (velocity2Normal - velocity1Normal) * normalY;
+                ball2.velocity.x += (velocity1Normal - velocity2Normal) * normalX;
+                ball2.velocity.y += (velocity1Normal - velocity2Normal) * normalY;
             }
         }
 
+        /**
+         * 物理引擎主更新循环
+         */
         function update() {
-            let moving = false;
+            let isAnyBallMoving = false;
 
+            // 蓄力状态动态逻辑
             if (isCharging && !isMoving) {
                 currentPower += 2.0 * chargeDirection;
                 if (currentPower >= 100) { currentPower = 100; chargeDirection = -1; }
                 if (currentPower <= 0) { currentPower = 0; chargeDirection = 1; }
-                
+
+                // UI力度条适配屏幕方向
                 if (window.innerHeight > window.innerWidth) {
                     powerFill.style.width = `${currentPower}%`;
                     powerFill.style.height = `100%`;
@@ -300,168 +445,210 @@
                 }
             }
 
+            // 更新每个球的位置与速度
             for (let i = 0; i < balls.length; i++) {
-                const b = balls[i];
-                if (b.inPocket) continue;
+                const ball = balls[i];
+                if (ball.inPocket) continue;
 
-                b.pos.x += b.vel.x;
-                b.pos.y += b.vel.y;
-                b.vel.x *= FRICTION;
-                b.vel.y *= FRICTION;
+                // 欧拉积分更新位移
+                ball.position.x += ball.velocity.x;
+                ball.position.y += ball.velocity.y;
 
-                if (Math.abs(b.vel.x) < 0.15) b.vel.x = 0;
-                if (Math.abs(b.vel.y) < 0.15) b.vel.y = 0;
-                if (b.vel.x !== 0 || b.vel.y !== 0) moving = true;
+                // 施加摩擦力衰减
+                ball.velocity.x *= FRICTION;
+                ball.velocity.y *= FRICTION;
 
-                if (b.pos.x - b.radius < 0 || b.pos.x + b.radius > TABLE_WIDTH) {
-                    b.vel.x *= -0.8;
-                    b.pos.x = b.pos.x - b.radius < 0 ? b.radius : TABLE_WIDTH - b.radius;
+                // 停止检测：速度低于阈值则强制归零，防止无限抖动
+                if (Math.abs(ball.velocity.x) < 0.15) ball.velocity.x = 0;
+                if (Math.abs(ball.velocity.y) < 0.15) ball.velocity.y = 0;
+                if (ball.velocity.x !== 0 || ball.velocity.y !== 0) isAnyBallMoving = true;
+
+                // 墙壁反弹逻辑 (0.8 反弹损失)
+                if (ball.position.x - ball.radius < 0 || ball.position.x + ball.radius > TABLE_WIDTH) {
+                    ball.velocity.x *= -0.8;
+                    ball.position.x = ball.position.x - ball.radius < 0 ? ball.radius : TABLE_WIDTH - ball.radius;
                 }
-                if (b.pos.y - b.radius < 0 || b.pos.y + b.radius > TABLE_HEIGHT) {
-                    b.vel.y *= -0.8;
-                    b.pos.y = b.pos.y - b.radius < 0 ? b.radius : TABLE_HEIGHT - b.radius;
+                if (ball.position.y - ball.radius < 0 || ball.position.y + ball.radius > TABLE_HEIGHT) {
+                    ball.velocity.y *= -0.8;
+                    ball.position.y = ball.position.y - ball.radius < 0 ? ball.radius : TABLE_HEIGHT - ball.radius;
                 }
 
-                for (const p of POCKET_POSITIONS) {
-                    const distSq = (b.pos.x - p.x)**2 + (b.pos.y - p.y)**2;
-                    if (distSq < POCKET_RADIUS * POCKET_RADIUS) {
-                        b.inPocket = true;
-                        b.vel = { x: 0, y: 0 };
-                        if (b.type === 'CUE') {
+                // 袋口进球检测
+                for (const pocket of POCKET_POSITIONS) {
+                    const distanceSquared = (ball.position.x - pocket.x)**2 + (ball.position.y - pocket.y)**2;
+                    if (distanceSquared < POCKET_RADIUS * POCKET_RADIUS) {
+                        ball.inPocket = true;
+                        ball.velocity = { x: 0, y: 0 };
+                        if (ball.type === 'CUE') {
+                            // 母球进球惩罚：延迟复位
                             setTimeout(() => {
-                                b.inPocket = false;
-                                b.pos = { x: TABLE_WIDTH / 4, y: TABLE_HEIGHT / 2 };
+                                ball.inPocket = false;
+                                ball.position = { x: TABLE_WIDTH / 4, y: TABLE_HEIGHT / 2 };
                             }, 600);
                         } else {
-                            if (currentTurn === 1) scores.p1++; else scores.p2++;
+                            // 目标球进球：增加比分
+                            if (currentTurn === 1) scores.player1++; else scores.player2++;
                             updateScoreDisplay();
                         }
                     }
                 }
 
+                // 全局碰撞检测（每对球检测一次）
                 for (let j = i + 1; j < balls.length; j++) {
-                    resolveCollision(b, balls[j]);
+                    resolveCollision(ball, balls[j]);
                 }
             }
 
-            if (moving !== isMoving) {
-                isMoving = moving;
+            // 状态同步至UI
+            if (isAnyBallMoving !== isMoving) {
+                isMoving = isAnyBallMoving;
                 updateStatusBadge();
             }
 
             draw();
+            // 移动端优化：使用requestAnimationFrame，但限制帧率（避免过度消耗性能）
             requestAnimationFrame(update);
         }
 
+        /**
+         * 渲染主函数
+         */
         function draw() {
-            ctx.clearRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
-            ctx.fillStyle = '#0a0a0a';
-            for (const p of POCKET_POSITIONS) {
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI * 2);
-                ctx.fill();
+            canvasContext.clearRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
+
+            // 1. 绘制袋口（背景）
+            canvasContext.fillStyle = '#0a0a0a';
+            for (const pocket of POCKET_POSITIONS) {
+                canvasContext.beginPath();
+                canvasContext.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
+                canvasContext.fill();
             }
 
-            const cueBall = balls.find(b => b.type === 'CUE');
+            // 2. 绘制瞄准线与蓄力光圈
+            const cueBall = balls.find(ball => ball.type === 'CUE');
             if (cueBall && !cueBall.inPocket && !isMoving) {
-                ctx.beginPath();
-                ctx.setLineDash([6, 4]);
-                ctx.strokeStyle = isCharging ? `rgba(255, 255, 255, ${0.4 + currentPower/200})` : 'rgba(255, 255, 255, 0.4)';
-                ctx.lineWidth = 1.5 + currentPower/40;
-                ctx.moveTo(cueBall.pos.x, cueBall.pos.y);
+                canvasContext.beginPath();
+                canvasContext.setLineDash([6, 4]); // 虚线
+                canvasContext.strokeStyle = isCharging ? `rgba(255, 255, 255, ${0.4 + currentPower/200})` : 'rgba(255, 255, 255, 0.4)';
+                canvasContext.lineWidth = 1.5 + currentPower/40;
+                canvasContext.moveTo(cueBall.position.x, cueBall.position.y);
                 const lineLength = 120 + currentPower;
-                ctx.lineTo(cueBall.pos.x + aimVector.x * lineLength, cueBall.pos.y + aimVector.y * lineLength);
-                ctx.stroke();
-                ctx.setLineDash([]);
+                canvasContext.lineTo(cueBall.position.x + aimVector.x * lineLength, cueBall.position.y + aimVector.y * lineLength);
+                canvasContext.stroke();
+                canvasContext.setLineDash([]);
 
+                // 环绕母球的进度光圈
                 if (isCharging) {
-                    ctx.beginPath();
-                    ctx.arc(cueBall.pos.x, cueBall.pos.y, BALL_RADIUS + 6, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * currentPower) / 100);
-                    ctx.strokeStyle = '#f59e0b';
-                    ctx.lineWidth = 3.5;
-                    ctx.stroke();
+                    canvasContext.beginPath();
+                    canvasContext.arc(cueBall.position.x, cueBall.position.y, BALL_RADIUS + 6, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * currentPower) / 100);
+                    canvasContext.strokeStyle = '#f59e0b';
+                    canvasContext.lineWidth = 3.5;
+                    canvasContext.stroke();
                 }
             }
 
-            for (const b of balls) {
-                if (b.inPocket) continue;
-                ctx.save();
-                ctx.shadowBlur = 6;
-                ctx.shadowColor = 'rgba(0,0,0,0.4)';
-                ctx.shadowOffsetY = 3;
-                ctx.beginPath();
-                ctx.arc(b.pos.x, b.pos.y, b.radius, 0, Math.PI * 2);
-                ctx.fillStyle = b.color;
-                ctx.fill();
+            // 3. 绘制球体
+            for (const ball of balls) {
+                if (ball.inPocket) continue;
+                canvasContext.save();
 
-                const grad = ctx.createRadialGradient(b.pos.x - b.radius * 0.35, b.pos.y - b.radius * 0.35, b.radius * 0.1, b.pos.x, b.pos.y, b.radius);
-                grad.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
-                grad.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
-                ctx.fillStyle = grad;
-                ctx.fill();
+                // 落地阴影
+                canvasContext.shadowBlur = 6;
+                canvasContext.shadowColor = 'rgba(0,0,0,0.4)';
+                canvasContext.shadowOffsetY = 3;
 
-                if (b.type !== 'CUE') {
-                    ctx.fillStyle = (b.number === 1 || b.number === 9) ? '#000' : '#fff';
-                    ctx.font = 'bold 8px Inter, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(b.number.toString(), b.pos.x, b.pos.y);
+                // 球体主色
+                canvasContext.beginPath();
+                canvasContext.arc(ball.position.x, ball.position.y, ball.radius, 0, Math.PI * 2);
+                canvasContext.fillStyle = ball.color;
+                canvasContext.fill();
+
+                // 模拟立体高光的径向渐变
+                const gradient = canvasContext.createRadialGradient(
+                    ball.position.x - ball.radius * 0.35,
+                    ball.position.y - ball.radius * 0.35,
+                    ball.radius * 0.1,
+                    ball.position.x,
+                    ball.position.y,
+                    ball.radius
+                );
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+                gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+                canvasContext.fillStyle = gradient;
+                canvasContext.fill();
+
+                // 绘制球号
+                if (ball.type !== 'CUE') {
+                    canvasContext.fillStyle = (ball.number === 1 || ball.number === 9) ? '#000' : '#fff';
+                    canvasContext.font = 'bold 8px system-ui';
+                    canvasContext.textAlign = 'center';
+                    canvasContext.textBaseline = 'middle';
+                    canvasContext.fillText(ball.number.toString(), ball.position.x, ball.position.y);
                 }
-                ctx.restore();
+                canvasContext.restore();
             }
         }
 
+        /**
+         * 更新比分板UI
+         */
         function updateScoreDisplay() {
-            score1El.textContent = scores.p1.toString().padStart(2, '0');
-            score2El.textContent = scores.p2.toString().padStart(2, '0');
+            score1El.textContent = scores.player1.toString().padStart(2, '0');
+            score2El.textContent = scores.player2.toString().padStart(2, '0');
         }
 
+        /**
+         * 更新游戏状态徽章
+         */
         function updateStatusBadge() {
             if (isMoving) {
-                statusBadge.classList.remove('bg-green-700');
-                statusBadge.classList.add('bg-zinc-300', 'dark:bg-zinc-800', 'text-zinc-500');
+                statusBadge.style.background = '#e4e4e7';
+                statusBadge.style.color = '#71717a';
                 statusText.textContent = "正在滚动";
-                statusIcon.textContent = "hourglass_empty";
             } else {
-                statusBadge.classList.add('bg-green-700');
-                statusBadge.classList.remove('bg-zinc-300', 'dark:bg-zinc-800', 'text-zinc-500');
+                statusBadge.style.background = 'var(--bg-green-700)';
+                statusBadge.style.color = 'white';
                 statusText.textContent = "等待击球";
-                statusIcon.textContent = "play_arrow";
             }
         }
 
+        /**
+         * 切换玩家回合
+         */
         function switchTurn() {
             currentTurn = currentTurn === 1 ? 2 : 1;
-            turnText.innerHTML = `<span class="w-1.5 h-1.5 md:w-2.5 md:h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />回合: 玩家 ${currentTurn}`;
-            
-            // 更新比分板激活状态
+            turnText.textContent = `回合: 玩家 ${currentTurn}`;
             if (currentTurn === 1) {
-                p1Box.classList.add('bg-white', 'dark:bg-zinc-900', 'shadow-sm', 'border-zinc-200', 'dark:border-zinc-700');
-                p2Box.classList.remove('bg-white', 'dark:bg-zinc-900', 'shadow-sm', 'border-zinc-200', 'dark:border-zinc-700');
-                p1Box.querySelector('#score1').classList.remove('opacity-60');
-                p2Box.querySelector('#score2').classList.add('opacity-60');
+                p1Box.classList.add('active'); p2Box.classList.remove('active');
+                score1El.style.opacity = '1'; score2El.style.opacity = '0.6';
             } else {
-                p2Box.classList.add('bg-white', 'dark:bg-zinc-900', 'shadow-sm', 'border-zinc-200', 'dark:border-zinc-700');
-                p1Box.classList.remove('bg-white', 'dark:bg-zinc-900', 'shadow-sm', 'border-zinc-200', 'dark:border-zinc-700');
-                p2Box.querySelector('#score2').classList.remove('opacity-60');
-                p1Box.querySelector('#score1').classList.add('opacity-60');
+                p2Box.classList.add('active'); p1Box.classList.remove('active');
+                score2El.style.opacity = '1'; score1El.style.opacity = '0.6';
             }
         }
 
-        function handleInputStart(e) {
+        /**
+         * 输入开始处理 (Mouse Down / Touch Start)
+         */
+        function handleInputStart(event) {
             if (isMoving) return;
             isCharging = true;
-            updateAim(e);
+            updateAim(event);
         }
 
+        /**
+         * 输入结束处理 (Mouse Up / Touch End)
+         */
         function handleInputEnd() {
             if (!isCharging) return;
-            const cueBall = balls.find(b => b.type === 'CUE');
+            const cueBall = balls.find(ball => ball.type === 'CUE');
             if (cueBall && !cueBall.inPocket) {
+                // 根据蓄力百分比计算发射力度
                 const shotPower = (currentPower / 100) * MAX_POWER;
-                cueBall.vel = { x: aimVector.x * shotPower, y: aimVector.y * shotPower };
+                cueBall.velocity = { x: aimVector.x * shotPower, y: aimVector.y * shotPower };
                 switchTurn();
             }
+            // 重置蓄力参数
             isCharging = false;
             currentPower = 0;
             chargeDirection = 1;
@@ -469,57 +656,86 @@
             powerFill.style.width = '0%';
         }
 
-        function updateAim(e) {
-            if (isMoving) return;
-            const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const scaleX = TABLE_WIDTH / rect.width;
-            const scaleY = TABLE_HEIGHT / rect.height;
-            const x = (clientX - rect.left) * scaleX;
-            const y = (clientY - rect.top) * scaleY;
+/**
+ * 更新瞄准方向：彻底修复击球方向，匹配真实台球逻辑
+ */
+function updateAim(event) {
+    if (isMoving) return;
+    
+    // 获取Canvas的实际位置和尺寸（考虑缩放）
+    const canvasRect = canvas.getBoundingClientRect();
+    const scaleX = TABLE_WIDTH / canvasRect.width;
+    const scaleY = TABLE_HEIGHT / canvasRect.height;
 
-            const cueBall = balls.find(b => b.type === 'CUE');
-            if (cueBall) {
-                const dx = x - cueBall.pos.x;
-                const dy = y - cueBall.pos.y;
-                const mag = Math.sqrt(dx * dx + dy * dy);
-                if (mag > 0) aimVector = { x: dx / mag, y: dy / mag };
-            }
+    // 兼容触摸与鼠标坐标
+    let clientX, clientY;
+    if (event.touches) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+    } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+    }
+
+    // 计算相对Canvas的坐标（修正缩放和偏移）
+    const touchX = (clientX - canvasRect.left) * scaleX;
+    const touchY = (clientY - canvasRect.top) * scaleY;
+
+    const cueBall = balls.find(ball => ball.type === 'CUE');
+    if (cueBall) {
+        // 核心修正：向量方向 = 母球位置 - 触摸点位置 → 触摸点→母球（球杆推母球的方向）
+        const deltaX = cueBall.position.x - touchX;
+        const deltaY = cueBall.position.y - touchY;
+        const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        if (magnitude > 0) {
+            // 归一化向量，无负号！
+            aimVector = { 
+                x: deltaX / magnitude, 
+                y: deltaY / magnitude 
+            };
         }
+    }
+}
 
-        initCanvas();
-        initBalls();
-        update();
+        /* --- 生命周期与事件挂载 --- */
+        // 页面加载完成后初始化（确保DOM完全加载）
+        window.addEventListener('load', () => {
+            initCanvas();
+            initBalls();
+            update(); // 启动渲染循环
 
+            // 窗口大小变化时重新适配Canvas
+            window.addEventListener('resize', () => {
+                initCanvas();
+                // 适配力度条显示
+                if (window.innerHeight > window.innerWidth) { 
+                    powerFill.style.height = '100%'; 
+                } else { 
+                    powerFill.style.width = '100%'; 
+                }
+            });
+        });
+
+        // 鼠标事件
         canvas.addEventListener('mousedown', handleInputStart);
         window.addEventListener('mouseup', handleInputEnd);
         canvas.addEventListener('mousemove', updateAim);
-        canvas.addEventListener('touchstart', (e) => { if (e.cancelable) e.preventDefault(); handleInputStart(e); }, { passive: false });
+
+        // 触摸事件（修复移动端兼容性）
+        canvas.addEventListener('touchstart', handleInputStart, { passive: false });
         window.addEventListener('touchend', handleInputEnd);
-        canvas.addEventListener('touchmove', (e) => { if (e.cancelable) e.preventDefault(); updateAim(e); }, { passive: false });
+        window.addEventListener('touchcancel', handleInputEnd); // 增加touchcancel监听（防止触摸中断）
+        canvas.addEventListener('touchmove', updateAim, { passive: false });
 
-        themeToggle.addEventListener('click', () => {
-            document.documentElement.classList.toggle('dark');
-            const icon = themeToggle.querySelector('.material-icons');
-            icon.textContent = document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
-        });
-
+        // UI交互事件
         resetBtn.addEventListener('click', () => {
-            scores = { p1: 0, p2: 0 };
+            scores = { player1: 0, player2: 0 };
             currentTurn = 1;
             updateScoreDisplay();
             initBalls();
-            turnText.innerHTML = `<span class="w-1.5 h-1.5 md:w-2.5 md:h-2.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />回合: 玩家 1`;
-            p1Box.classList.add('bg-white', 'dark:bg-zinc-900', 'shadow-sm', 'border-zinc-200', 'dark:border-zinc-700');
-            p2Box.classList.remove('bg-white', 'dark:bg-zinc-900', 'shadow-sm', 'border-zinc-200', 'dark:border-zinc-700');
-            p1Box.querySelector('#score1').classList.remove('opacity-60');
-            p2Box.querySelector('#score2').classList.add('opacity-60');
-        });
-        
-        window.addEventListener('resize', () => {
-            if (window.innerHeight > window.innerWidth) { powerFill.style.height = '100%'; }
-            else { powerFill.style.width = '100%'; }
+            p1Box.classList.add('active'); p2Box.classList.remove('active');
+            score1El.style.opacity = '1'; score2El.style.opacity = '0.6';
         });
     </script>
 </body>
